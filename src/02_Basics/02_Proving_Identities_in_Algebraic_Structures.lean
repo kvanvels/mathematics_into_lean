@@ -1,7 +1,7 @@
 import algebra.ring
 import data.real.basic
 import tactic
-
+Kent 
 section
 variables (R : Type*) [ring R]
 
