@@ -1,7 +1,6 @@
 import algebra.ring
 import data.real.basic
 import tactic
-Kent 
 section
 variables (R : Type*) [ring R]
 
@@ -59,14 +58,20 @@ by rw [←add_assoc, add_left_neg, zero_add]
 
 /- Prove these: -/
 
-theorem add_neg_cancel_right (a b : R) : (a + b) + -b = a :=
-sorry
+theorem add_neg_cancel_right (a b : R) : (a + b) + -b = a := by 
+  rw [add_assoc,add_right_neg,add_zero]
 
-theorem add_left_cancel {a b c : R} (h : a + b = a + c) : b = c :=
-sorry
 
-theorem add_right_cancel {a b c : R} (h : a + b = c + b) : a = c :=
-sorry
+theorem add_left_cancel {a b c : R} (h : a + b = a + c) : b = c :=  by 
+  rw [←neg_add_cancel_left a b, h, ←add_assoc, add_left_neg, zero_add]
+
+
+theorem add_right_cancel {a b c : R} (h : a + b = c + b) : a = c:= by 
+{ rw [add_comm a b, add_comm c b]  at h,
+  exact add_left_cancel h,
+}
+
+
 
 theorem mul_zero (a : R) : a * 0 = 0 :=
 begin
