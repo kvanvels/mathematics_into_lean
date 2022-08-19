@@ -51,16 +51,23 @@ le_refl x
 #check (lt_trans : a < b → b < c → a < c)
 
 /- Try this. -/
-
-example (h₀ : a ≤ b) (h₁ : b < c) (h₂ : c ≤ d)
+theorem k2 (h₀ : a ≤ b) (h₁ : b < c) (h₂ : c ≤ d)
     (h₃ : d < e) :
   a < e :=
-sorry
+begin
+  have h1 : a < c := lt_of_le_of_lt (h₀) (h₁),
+  have h2 : a < d := lt_of_lt_of_le h1 h₂,
+  exact lt_trans h2 h₃,  
+end
+
+
 
 example (h₀ : a ≤ b) (h₁ : b < c) (h₂ : c ≤ d)
     (h₃ : d < e) :
   a < e :=
 by linarith
+
+
 
 section
 example (h : 2 * a ≤ 3 * b) (h' : 1 ≤ a) (h'' : d = 2) :
@@ -105,8 +112,14 @@ end
 
 example (h₀ : d ≤ e) : c + exp (a + d) ≤ c + exp (a + e) :=
 begin
-  sorry
+  apply add_le_add,
+  refl,
+  apply exp_le_exp.mpr,
+  apply add_le_add,
+  refl,
+  exact h₀,
 end
+
 
 example : (0 : ℝ) < 1 :=
 by norm_num
@@ -114,11 +127,18 @@ by norm_num
 example (h : a ≤ b) : log (1 + exp a) ≤ log (1 + exp b) :=
 begin
   have h₀ : 0 < 1 + exp a,
-  { sorry },
+  { 
+    linarith [exp_pos a],
+  },
   have h₁ : 0 < 1 + exp b,
-  { sorry },
+  { 
+      linarith [exp_pos b],
+  },
   apply (log_le_log h₀ h₁).mpr,
-  sorry
+  apply add_le_add,
+  refl,
+  rw exp_le_exp,
+  exact h,  
 end
 
     example : 0 ≤ a^2 :=
@@ -128,7 +148,12 @@ end
     end
 
 example (h : a ≤ b) : c - exp b ≤ c - exp a :=
-  sorry
+begin
+  apply sub_le_sub,
+  refl,
+  rw exp_le_exp,
+  exact h,
+end
 
 example : 2*a*b ≤ a^2 + b^2 :=
 begin
@@ -143,7 +168,7 @@ begin
     ... = a^2 + b^2                   : by ring
 end
 
-example : 2*a*b ≤ a^2 + b^2 :=
+theorem aux : 2*a*b ≤ a^2 + b^2 :=
 begin
   have h : 0 ≤ a^2 - 2*a*b + b^2,
   calc
@@ -152,8 +177,38 @@ begin
   linarith
 end
 
-example : abs (a*b) ≤ (a^2 + b^2) / 2 :=
-sorry
+theorem aux_2  {p : ℝ} : p^2 = (abs p)^2 := 
+begin
+  apply or.elim (em (p ≥ 0)),
+  intro ppos,
+  have h1 := abs_eq_self.mpr ppos,
+  rw h1,
+  intro pneg,
+  push_neg at pneg,
+  have h1 := abs_of_neg pneg,
+  rw h1,
+  have h2 := neg_sq p,
+  rw h2,
+end  
 
-#check abs_le'.mpr
+example : abs (a*b) ≤ (a^2 + b^2) / 2 :=
+begin
+  have h1 := aux (abs a) (abs b),
+  have h2 : |a|^2 = a^2 := by rw ←aux_2,
+  have h3 : |b|^2 = b^2 := by rw ←aux_2,
+  have h4 : |a|*|b|= |a * b| := (abs_mul a b).symm,
+  rw mul_assoc at h1, 
+  rw [h2,h3,h4] at h1,
+  have h0 : (2:real) >(0:real) := by norm_num,
+  exact (le_div_iff' h0).mpr h1,  
+end
+
+
+
+
+  
+  
+
+
+
 
