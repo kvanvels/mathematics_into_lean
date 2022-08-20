@@ -33,49 +33,190 @@ begin
 end
 
 example : f '' s ⊆ v ↔ s ⊆ f ⁻¹' v :=
-sorry
+begin
+  apply iff.intro,
+  intros h x xs,
+  dsimp,
+  have h1 : f x ∈ f '' s := mem_image_of_mem _ xs,
+  have h2 := h h1,
+  exact h2,
+  intros h1 y h2,
+  rcases h2 with ⟨x,xs,fx⟩,
+  have h3 := h1 xs,
+  dsimp at h3,
+  rw ←fx,
+  exact h3,  
+end
 
 example (h : injective f) : f ⁻¹' (f '' s) ⊆ s :=
-sorry
+begin
+  rintros y ⟨x,⟨h2,h3⟩⟩,
+  specialize h h3,
+  rw ←h,
+  exact h2,  
+end
+
 
 example : f '' (f⁻¹' u) ⊆ u :=
-sorry
+begin
+  rintros x ⟨h1,⟨h2,h3⟩⟩,
+  dsimp at h2,
+  rw h3 at h2,
+  exact h2,  
+end
 
 example (h : surjective f) : u ⊆ f '' (f⁻¹' u) :=
-sorry
+begin
+  intros x h1,
+  specialize h x,
+  cases h with y hy,
+  apply exists.intro y,
+  apply and.intro,
+  dsimp,
+  rw hy,
+  exact h1,
+  exact hy,
+end
 
 example (h : s ⊆ t) : f '' s ⊆ f '' t :=
-sorry
+begin
+  intros x h1,
+  rcases h1 with ⟨y, ⟨hy1,hy2⟩⟩,
+  apply exists.intro y,
+  apply and.intro,
+  exact h hy1,
+  exact hy2,
+end
+
 
 example (h : u ⊆ v) : f ⁻¹' u ⊆ f ⁻¹' v :=
-sorry
+begin
+  intros x h1,
+  exact (h h1),  
+end
+
 
 example : f ⁻¹' (u ∪ v) = f ⁻¹' u ∪ f ⁻¹' v :=
-sorry
+begin
+  dsimp,
+  refl,
+end
 
 example : f '' (s ∩ t) ⊆ f '' s ∩ f '' t :=
-sorry
+begin
+  rintros y ⟨x,⟨h1,h2⟩⟩,
+  apply and.intro,
+  apply exists.intro x,
+  apply and.intro,
+  exact h1.left,
+  exact h2,
+  apply exists.intro x,
+  apply and.intro,
+  apply h1.right,
+  exact h2,  
+end
 
 example (h : injective f) : f '' s ∩ f '' t ⊆ f '' (s ∩ t) :=
-sorry
+begin
+  rintros y ⟨⟨x1,⟨h2,h3⟩⟩,⟨x2,⟨h5,h6⟩⟩⟩,
+  have h7 : x1 = x2 := 
+  begin
+    apply h,
+    rw h3,  
+    exact h6.symm,
+  end,
+  apply exists.intro x1,
+  apply and.intro,
+  apply and.intro,
+  exact h2,
+  rw h7,
+  exact h5,
+  exact h3, 
+end
+
 
 example : f '' s \ f '' t ⊆ f '' (s \ t) :=
-sorry
+begin
+  rintros y ⟨⟨x,⟨h1,h2⟩⟩,h3⟩,
+  apply exists.intro x,
+  apply and.intro,
+  apply and.intro,
+  exact h1,
+  intro h4,
+  apply h3,
+  apply exists.intro x,
+  apply and.intro,
+  exact h4,
+  exact h2,
+  exact h2,  
+end
+
 
 example : f ⁻¹' u \ f ⁻¹' v ⊆ f ⁻¹' (u \ v) :=
-sorry
+begin
+  intro x,
+  dsimp,
+  intro h1,
+  exact h1,  
+end
+
 
 example : f '' s ∩ v = f '' (s ∩ f ⁻¹' v) :=
-sorry
+begin
+  apply subset_antisymm,
+  rintros y ⟨⟨x,⟨h1,h2⟩⟩,h3⟩,
+  apply exists.intro x,
+  apply and.intro,
+  apply and.intro,
+  exact h1,
+  dsimp,
+  rw h2,
+  exact h3,
+  exact h2,
+  rintros y ⟨x,⟨⟨h1,h2⟩,h3⟩⟩,
+  apply and.intro,
+  apply exists.intro x,
+  apply and.intro,
+  exact h1,
+  exact h3,
+  rw ←h3,
+  exact h2,  
+end
 
 example : f '' (s ∩ f ⁻¹' u) ⊆ f '' s ∪ u :=
-sorry
+begin
+  rintros y ⟨x,⟨⟨h1,h2⟩,h3⟩⟩,
+  apply or.inr,
+  rw ←h3,
+  exact h2,  
+end
+
 
 example : s ∩ f ⁻¹' u ⊆ f ⁻¹' (f '' s ∩ u) :=
-sorry
+begin
+  rintro x ⟨h1,h2⟩,
+  dsimp at h2,
+  dsimp [preimage],
+  apply and.intro,
+  apply exists.intro x,
+  apply and.intro,
+  exact h1,
+  refl,
+  exact h2,  
+
+end
 
 example : s ∪ f ⁻¹' u ⊆ f ⁻¹' (f '' s ∪ u) :=
-sorry
+begin
+  rintros x (h1|h2),
+  apply or.inl,
+  apply exists.intro x,
+  apply and.intro h1,
+  refl,
+  apply or.inr,
+  exact h2,  
+end
+
 
 variables {I : Type*} (A : I → set α) (B : I → set β)
 
@@ -144,16 +285,52 @@ begin
 end
 
 example : inj_on sqrt { x | x ≥ 0 } :=
-sorry
+begin
+  intros x x_pos y y_pos h,
+  calc
+    x   = (sqrt x)^2 : by rw sq_sqrt x_pos
+    ... = (sqrt y)^2 : by rw h
+    ... = y          : by rw sq_sqrt y_pos
+
+  
+end
 
 example : inj_on (λ x, x^2) { x : ℝ | x ≥ 0 } :=
-sorry
+begin
+  intros x x_pos y y_pos h,
+  dsimp at h,
+calc
+  x = sqrt (x^2) : by rw sqrt_sq x_pos
+ ...= sqrt (y^2) : by rw h
+... = y          : by rw sqrt_sq y_pos,  
+end
 
 example : sqrt '' { x | x ≥ 0 } = {y | y ≥ 0} :=
-sorry
+begin
+    ext y, split,
+    { rintros ⟨x, ⟨xnonneg, rfl⟩⟩,
+      apply sqrt_nonneg },
+    intro ynonneg,
+    use y^2,
+    dsimp at *,
+    split,
+    apply pow_nonneg ynonneg,
+    apply sqrt_sq,
+    assumption,
+end
 
 example : range (λ x, x^2) = {y : ℝ  | y ≥ 0} :=
-sorry
+begin
+    ext y,
+    split,
+    { rintros ⟨x, rfl⟩,
+       dsimp at *,
+       apply pow_two_nonneg },
+    intro ynonneg,
+    use sqrt y,
+    exact sq_sqrt ynonneg,
+end
+
 
 end
 
@@ -185,10 +362,34 @@ variable  f : α → β
 open function
 
 example : injective f ↔ left_inverse (inverse f) f  :=
-sorry
+begin
+  apply iff.intro,
+  intros h1 x,
+  apply h1,
+  apply inverse_spec,
+  apply exists.intro x,
+  refl,
+  intros h1 x1 x2 h2,
+  rw ←h1 x1,
+  rw ←h1 x2,
+  rw h2,  
+end
+
+
 
 example : surjective f ↔ right_inverse (inverse f) f :=
-sorry
+begin
+  apply iff.intro,
+  intros h1 y,
+  apply inverse_spec,
+  have h2 := h1 y,
+  exact h2,
+  intros h1 y,
+  apply exists.intro ((inverse f) y),
+  apply h1,
+end
+
+  
 
 end
 
@@ -207,10 +408,10 @@ begin
       { by rwa h at h' },
     contradiction },
   have h₂ : j ∈ S,
-    sorry,
+    from h₁,
   have h₃ : j ∉ S,
-    sorry,
-  contradiction
+    by rwa h at h₁,
+    contradiction,
 end
 
 end
