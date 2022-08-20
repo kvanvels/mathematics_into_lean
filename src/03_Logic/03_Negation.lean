@@ -30,10 +30,24 @@ begin
 end
 
 example (h : ∀ a, ∃ x, f x < a) : ¬ fn_has_lb f :=
-sorry
+begin
+  intro h1,
+  cases h1 with x hx1,
+  unfold fn_lb at hx1,
+  specialize h x,
+  cases h with y hy,
+  specialize hx1 y,
+  linarith,
+end
 
 example : ¬ fn_has_ub (λ x, x) :=
-sorry
+begin
+  intro h1,
+  cases h1 with x h1x,
+  specialize h1x (x + 1),
+  dsimp at h1x,
+  linarith,
+end
 
 #check (not_le_of_gt : a > b → ¬ a ≤ b)
 #check (not_lt_of_ge : a ≥ b → ¬ a < b)
@@ -41,10 +55,20 @@ sorry
 #check (le_of_not_gt : ¬ a > b → a ≤ b)
 
 example (h : monotone f) (h' : f a < f b) : a < b :=
-sorry
+begin
+  by_contradiction h2,
+  push_neg at h2,
+  specialize h h2,
+  linarith,
+end
 
 example (h : a ≤ b) (h' : f b < f a) : ¬ monotone f :=
-sorry
+begin
+  intro h1,
+  specialize h1 h,
+  linarith,
+end
+
 
 example :
   ¬ ∀ {f : ℝ → ℝ}, monotone f → ∀ {a b}, f a ≤ f b → a ≤ b :=
@@ -52,14 +76,26 @@ begin
   intro h,
   let f := λ x : ℝ, (0 : ℝ),
   have monof : monotone f,
-  { sorry },
+  {
+    intros x1 x2 h1,
+    refl,  
+  },
   have h' : f 1 ≤ f 0,
     from le_refl _,
-  sorry
+  have h2 := @h f monof 1 0 h',
+  linarith,
 end
 
 example (x : ℝ) (h : ∀ ε > 0, x < ε) : x ≤ 0 :=
-sorry
+begin
+  revert h,
+  contrapose!,
+  intro x_pos,
+  apply exists.intro (x/2),
+  apply and.intro,
+  linarith,
+  linarith,  
+end
 
 end
 
@@ -67,34 +103,55 @@ section
 variables {α : Type*} (P : α → Prop) (Q : Prop)
 
 example (h : ¬ ∃ x, P x) : ∀ x, ¬ P x :=
-sorry
+begin
+  intros x h1,
+  apply h,
+  apply exists.intro x,
+  exact h1,  
+end
 
 example (h : ∀ x, ¬ P x) : ¬ ∃ x, P x :=
-sorry
+begin
+  rintro ⟨x,h1⟩,
+  specialize h x,
+  exact h h1,
+end
 
-example (h : ¬ ∀ x, P x) : ∃ x, ¬ P x :=
-sorry
 
 example (h : ∃ x, ¬ P x) : ¬ ∀ x, P x :=
-sorry
+begin
+  intro h1,
+  cases h with x hx,
+  specialize h1 x,
+  exact hx h1,
+end
+
 
 open_locale classical
 
 example (h : ¬ ∀ x, P x) : ∃ x, ¬ P x :=
 begin
-  by_contradiction h',
+  by_contradiction h1,
   apply h,
-  intro x,
-  show P x,
-  by_contradiction h'',
-  exact h' ⟨x, h''⟩
+  intros x,
+  by_contradiction h2,
+  apply h1,
+  apply exists.intro x,
+  exact h2,
 end
 
 example (h : ¬ ¬ Q) : Q :=
-sorry
+begin
+  by_contradiction h1,
+  apply h,
+  exact h1,
+end
 
 example (h : Q) : ¬ ¬ Q :=
-sorry
+begin
+  intro h1,
+  exact h1 h,
+end
 
 end
 
@@ -103,7 +160,20 @@ section
 variable (f : ℝ → ℝ)
 
 example (h : ¬ fn_has_ub f) : ∀ a, ∃ x, f x > a :=
-sorry
+begin
+ intro a,
+ by_contradiction h1,
+ apply h,
+ unfold fn_has_ub,
+ apply exists.intro a,
+ unfold fn_ub,
+ intro aa,
+ by_contradiction h2,
+ apply h1,
+ apply exists.intro aa,
+ push_neg at h2,
+ exact h2,  
+end
 
 example (h : ¬ ∀ a, ∃ x, f x > a) : fn_has_ub f :=
 begin
@@ -119,7 +189,13 @@ begin
 end
 
 example (h : ¬ monotone f) : ∃ x y, x ≤ y ∧ f y < f x :=
-sorry
+begin
+  rw monotone at h,
+  push_neg at h,
+  exact h,
+  
+end
+
 
 example (h : ¬ fn_has_ub f) : ∀ a, ∃ x, f x > a :=
 begin
