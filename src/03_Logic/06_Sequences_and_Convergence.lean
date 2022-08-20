@@ -35,8 +35,20 @@ begin
   cases cs (ε / 2) ε2pos with Ns hs,
   cases ct (ε / 2) ε2pos with Nt ht,
   use max Ns Nt,
-  sorry
+  intros n n_big,
+  have h3 := le_max_left Ns Nt,
+  have h4 := le_max_right Ns Nt,
+  specialize hs n (by linarith),
+  specialize ht n (by linarith),
+  calc 
+    | s n + t n - (a + b) | = | (s n - a) + (t n- b) | : by ring_nf
+                      ...   ≤ | s n - a | + |t n - b | : abs_add (s n - a) (t n -b)
+                      ...   <  ε/2         + |t n - b | : by linarith
+                      ...   <  ε/2 + ε/2                : by linarith
+                      ...   = ε                         : by linarith  
 end
+
+
 
 theorem converges_to_mul_const {s : ℕ → ℝ} {a : ℝ}
     (c : ℝ) (cs : converges_to s a) :
@@ -48,8 +60,29 @@ begin
     rw [h, zero_mul] },
   have acpos : 0 < abs c,
     from abs_pos.mpr h,
-  sorry
+  have acnz : abs c ≠ 0 := 
+  begin
+    intro h1,
+    rw h1 at acpos,
+    linarith,
+  end,
+
+  intros ε ε_pos,
+  have h3 := cs (ε/|c|) (div_pos ε_pos acpos),
+  cases h3 with N h3N,
+  apply exists.intro N,
+  intros n n_big,
+  specialize h3N n n_big,
+  calc 
+    |c * s n - c * a | 
+        = |c * (s n - a)|  : by rw ←mul_sub
+    ... = |c|* |s n - a|   : by rw abs_mul
+    ... < |c| * (ε / |c| ) : by exact (mul_lt_mul_left acpos).mpr h3N
+    ... = ε                : by exact mul_div_cancel' ε acnz,
+
 end
+
+--example (a b : ℝ) (h1 : a > 0) (h2 : b > 0) : a/b > 0:= by library_search,
 
 theorem exists_abs_le_of_converges_to {s : ℕ → ℝ} {a : ℝ}
     (cs : converges_to s a) :
@@ -57,7 +90,15 @@ theorem exists_abs_le_of_converges_to {s : ℕ → ℝ} {a : ℝ}
 begin
   cases cs 1 zero_lt_one with N h,
   use [N, abs a + 1],
-  sorry
+  intros n n_big,
+  specialize h n n_big,
+  
+   calc 
+     | s n | 
+         = |(s n - a) + a| : by ring_nf
+     ... ≤ |s n -a | + |a| : abs_add ( s n -a) a
+     ... < 1 + |a|         : add_lt_add_right h (abs a)
+     ... = |a| + 1         : by rw add_comm,  
 end
 
 lemma aux {s t : ℕ → ℝ} {a : ℝ}
@@ -71,7 +112,21 @@ begin
   have pos₀ : ε / B > 0,
     from div_pos εpos Bpos,
   cases ct _ pos₀ with N₁ h₁,
-  sorry
+  apply exists.intro (max N₀ N₁),
+  intros n n_big,
+  have h3 :=  le_max_left N₀ N₁,
+  have h4 :=  le_max_right N₀ N₁,
+  specialize h₀ n (by linarith),
+  specialize h₁ n (by linarith),
+
+  rw sub_zero,
+  rw sub_zero at h₁,
+  calc 
+  |s n * t n|
+      = |s n| * |t n| : abs_mul (s n) (t n)
+  ... < B *(ε/B)      : mul_lt_mul'' h₀ h₁ (abs_nonneg _) (abs_nonneg _)
+  ... = ε             : mul_div_cancel' _ (ne_of_lt Bpos).symm,
+  
 end
 
 theorem converges_to_mul {s t : ℕ → ℝ} {a b : ℝ}
@@ -101,13 +156,26 @@ begin
   cases sb ε εpos with Nb hNb,
   let N := max Na Nb,
   have absa : abs (s N - a) < ε,
-  { sorry },
+  {
+    exact hNa N (le_max_left Na Nb), 
+  },
   have absb : abs (s N - b) < ε,
-  { sorry },
+  { exact hNb N (le_max_right Na Nb),    
+  },
   have : abs (a - b) < abs (a - b),
-  { sorry },
+  { 
+    calc |a -b | = |(a - s N) +(s N - b)| : by ring_nf
+             ... ≤ |a - s N| + |s N - b|  : abs_add (a - s N) (s N -b)
+             ... = |s N -a | + |s N - b|  : by rw (abs_sub_comm (s N) a)
+             ... < ε + ε                  : add_lt_add (hNa N (le_max_left Na Nb)) 
+                                                       (hNb N (le_max_right Na Nb))
+             ... = |a-b|/2 + |a-b| /2     : by refl
+             ... = |a - b|                : by linarith,
+  },
   exact lt_irrefl _ this
 end
+
+
 
 section
 variables {α : Type*} [linear_order α]
