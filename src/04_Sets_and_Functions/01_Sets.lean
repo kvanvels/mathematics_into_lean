@@ -58,7 +58,13 @@ begin
 end
 
 example : (s ∩ t) ∪ (s ∩ u) ⊆ s ∩ (t ∪ u):=
-sorry
+begin
+  rintros x (⟨h1,h2⟩ | ⟨h3,h4⟩),
+  exact ⟨h1,or.inl h2⟩,
+  exact ⟨h3,or.inr h4⟩,  
+  
+end
+
 
 example : s \ t \ u ⊆ s \ (t ∪ u) :=
 begin
@@ -82,7 +88,19 @@ begin
 end
 
 example : s \ (t ∪ u) ⊆ s \ t \ u :=
-sorry
+begin
+  rintros x ⟨h1,h2⟩,
+  apply and.intro,
+  apply and.intro,
+  exact h1,
+  intro h3,
+  apply h2,
+  exact or.inl h3,
+  intro h3,
+  apply h2,
+  apply or.inr h3,
+end
+
 
 example : s ∩ t = t ∩ s :=
 begin
@@ -107,19 +125,75 @@ begin
 end
 
 example : s ∩ t = t ∩ s :=
-subset.antisymm sorry sorry
+subset.antisymm (λ x ⟨xs, xt⟩, ⟨xt,xs⟩) (λ x ⟨xt, xs⟩, ⟨xs,xt⟩)
+
+
 
 example : s ∩ (s ∪ t) = s :=
-sorry
+begin
+  ext,
+  apply iff.intro,
+  intro h1,
+  exact h1.left,
+  intro h1,
+  apply and.intro,
+  exact h1,
+  apply or.inl h1,  
+end
 
 example : s ∪ (s ∩ t) = s :=
-sorry
+begin
+  apply subset_antisymm,
+  rintros x (h1 | ⟨h2,h3⟩),
+  exact h1,
+  exact h2,
+  intros x h1,
+  apply or.inl,
+  exact h1,
+end
 
 example : (s \ t) ∪ t = s ∪ t :=
-sorry
+begin
+  apply subset_antisymm,
+  rintros x (⟨h1,h2⟩|h3),
+  apply or.inl h1,
+  apply or.inr h3,
+  rintros x (h1|h2),
+  apply or.elim (em (x ∈ t)),
+  intro h2,
+  apply or.inr h2,
+  intro h2,
+  apply or.inl,
+  apply and.intro,
+  exact h1,
+  exact h2,
+  apply or.inr h2,  
+end
 
 example : (s \ t) ∪ (t \ s) = (s ∪ t) \ (s ∩ t) :=
-sorry
+begin
+  apply subset_antisymm,
+  rintros x (⟨h1,h2⟩ | ⟨h3,h4⟩),
+  apply and.intro,
+  apply or.inl h1,
+  intro h3,
+  exact h2 h3.right,
+  apply and.intro,
+  apply or.inr h3,
+  intro h5,
+  exact h4 h5.left,
+  rintros x ⟨(h1|h2),h3⟩,
+  apply or.inl,
+  apply and.intro,
+  exact h1,
+  intro h4,
+  exact h3 ⟨h1,h4⟩,
+  apply or.inr,
+  apply and.intro,
+  exact h2,
+  intro h5,
+  exact h3 ⟨h5, h2⟩,
+end
 
 
 def evens : set ℕ := {n | even n}
@@ -140,7 +214,19 @@ example (x : ℕ) : x ∈ (univ : set ℕ) :=
 trivial
 
 example : { n | nat.prime n } ∩ { n | n > 2} ⊆ { n | ¬ even n } :=
-sorry
+begin
+  intro n,
+  dsimp,  
+  rintros ⟨h2,h3⟩ h4,
+  apply or.elim (nat.prime.eq_two_or_odd h2),
+  intro h5,
+  linarith,
+  intro h6,
+  have h7 := (nat.even_iff.mp) h4,
+  rw h6 at h7,
+  linarith,  
+end
+
 
 #print prime
 #print nat.prime
@@ -180,11 +266,23 @@ include ssubt
 
 example (h₀ : ∀ x ∈ t, ¬ even x) (h₁ : ∀ x ∈ t, prime x) :
   ∀ x ∈ s, ¬ even x ∧ prime x :=
-sorry
+begin
+  rintros x h1,
+  apply and.intro,
+  exact h₀ x (ssubt h1),
+  exact h₁ x (ssubt h1),
+  end
+
 
 example (h : ∃ x ∈ s, ¬ even x ∧ prime x) :
   ∃ x ∈ t, prime x :=
-sorry
+begin
+  rcases h with ⟨x,Hx,h1⟩,
+  have h2 := ssubt Hx,
+  apply exists.intro x,
+  apply exists.intro h2,
+  exact h1.right,  
+end
 
 end
 
@@ -222,13 +320,43 @@ begin
   split,
   { exact h1 i },
   exact h2 i
-end
+end        
 
 open_locale classical
 
 example : s ∪ (⋂ i, A i) = ⋂ i, (A i ∪ s) :=
-sorry
+begin
+  apply subset_antisymm,  
+  intros x,
+  rw mem_Inter,
+  intro h1,
+  intro ι,
+  apply or.elim h1,
+  intro h2,
+  exact or.inr h2,
+  intro h2,
+  rw mem_Inter at h2,
+  specialize h2 ι,
+  exact or.inl h2,
+  intros x h1,
+  rw mem_Inter at h1,
+  apply or.elim (em (x∈ s)),
+  intro h2,
+  apply or.inl h2,
+  intro h2,
+  apply or.inr,
+  rw mem_Inter,
+  intro ι,
+  specialize h1 ι,
+  apply or.elim h1,
+  intro h3,
+  exact h3,
+  intro h3,
+  apply false.elim,
+  exact h2 h3,  
+end
 
+  
 def primes : set ℕ := {x | nat.prime x}
 
 example : (⋃ p ∈ primes, {x | p^2 ∣ x}) = {x | ∃ p ∈ primes, p^2 ∣ x} :=
@@ -246,7 +374,17 @@ begin
 end
 
 example : (⋃ p ∈ primes, {x | x ≤ p}) = univ :=
-sorry
+begin
+apply eq_univ_of_forall,
+intro x,
+simp,
+rcases nat.exists_infinite_primes x with ⟨p, primep, pge⟩,
+apply exists.intro p,
+apply and.intro,
+exact pge,
+exact primep,  
+
+end
 
 end
 
