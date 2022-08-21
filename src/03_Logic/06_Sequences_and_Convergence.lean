@@ -41,11 +41,12 @@ begin
   specialize hs n (by linarith),
   specialize ht n (by linarith),
   calc 
-    | s n + t n - (a + b) | = | (s n - a) + (t n- b) | : by ring_nf
-                      ...   ≤ | s n - a | + |t n - b | : abs_add (s n - a) (t n -b)
-                      ...   <  ε/2         + |t n - b | : by linarith
-                      ...   <  ε/2 + ε/2                : by linarith
-                      ...   = ε                         : by linarith  
+    | s n + t n - (a + b) | 
+      = | (s n - a) + (t n- b) | : by ring_nf
+  ... ≤ | s n - a | + |t n - b | : abs_add (s n - a) (t n -b)
+  ... < ε/2         + |t n - b | : by linarith
+  ... < ε/2 + ε/2                : by linarith
+  ... = ε                        : by linarith  
 end
 
 
